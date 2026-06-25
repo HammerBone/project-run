@@ -1,0 +1,4 @@
+# YAML configuration file
+config/*.yaml
+
+tmp
