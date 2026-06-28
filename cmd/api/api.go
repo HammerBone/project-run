@@ -9,6 +9,7 @@ import (
 
 type application struct {
 	config *config.Config
+	dbConfig config.DBConfig
 }
 
 func (app *application) run(mux http.Handler) error {

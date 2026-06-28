@@ -1,4 +1,8 @@
 # YAML configuration file
 config/*.yaml
 
+# temporary file
 tmp
+
+# env file
+.envrc

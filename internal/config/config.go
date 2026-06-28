@@ -1,17 +1,17 @@
 package config
 
 type Config struct {
-	App AppConfig `yaml:"app"`
-	DB  DBConfig  `yaml:"db"`
+	App AppConfig
+	DB  DBConfig
 }
 
 type AppConfig struct {
-	ServerPort string `yaml:"server_port"`
+	ServerPort string `env:"APP_PORT"`
 }
 
 type DBConfig struct {
-	DbAddr      string `yaml:"db_addr"`
-	MaxOpenConn string
-	MaxIdleConn string
-	MaxIdleTime string
+	DBAddr      string `env:"DB_ADDR"`
+	MaxOpenConn string `env:"MAX_OPEN_CONN"`
+	MaxIdleConn string `env:"MAX_IDLE_CONN"`
+	MaxIdleTime string `env:"MAX_IDLE_TIME"`
 }
