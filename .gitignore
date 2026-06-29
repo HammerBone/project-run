@@ -6,3 +6,6 @@ tmp
 
 # env file
 .envrc
+
+# IDE
+.vscode/

@@ -5,7 +5,6 @@ import (
 
 	"github.com/HammerBone/project-run/internal/config"
 	"github.com/HammerBone/project-run/internal/database"
-	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -14,16 +13,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = database.NewDBConnection(cfg.DB.DBAddr)
+	db, err := database.NewDBConnection(cfg.DB.DBAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	app := &application{
-		config: cfg,
-		dbConfig: cfg.DB,
-	}
+	server := NewServer(cfg, db)
 
-	mux := chi.NewRouter()
-	app.run(mux)
+	server.run()
 }
