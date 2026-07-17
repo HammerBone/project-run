@@ -6,20 +6,7 @@ import (
 
 var cfg Config
 
-func LoadConfig(path string) (*Config, error) {
-	// YAML CONFIGURATION
-
-	// file, err := os.ReadFile(path)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = yaml.Unmarshal(file, &cfg)
-	// if err != nil {
-		// 	return nil, err
-		// }
-		
-	// log.Println("Config: ", cfg)
-
+func LoadEnv() (*Config, error) {
 	err := env.Parse(&cfg)
 	if err != nil {
 		return nil, err

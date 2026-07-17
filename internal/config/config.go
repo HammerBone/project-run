@@ -7,6 +7,7 @@ type Config struct {
 
 type AppConfig struct {
 	ServerPort string `env:"APP_PORT"`
+	JWTSecret  string `env:"JWT_SECRET"`
 }
 
 type DBConfig struct {
