@@ -9,9 +9,9 @@ import (
 )
 
 type userSecretClaim struct {
-	id      int
-	email   string
-	isAdmin bool
+	Id      int
+	Email   string
+	IsAdmin bool
 	jwt.RegisteredClaims
 }
 
@@ -32,9 +32,9 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	}
 
 	return &userSecretClaim{
-		id:      id,
-		email:   email,
-		isAdmin: isAdmin,
+		Id:      id,
+		Email:   email,
+		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        tokenId.String(),
 			Subject:   email,
@@ -44,22 +44,22 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	}, nil
 }
 
-func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration,) (string, error) {
+func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration) (string, *userSecretClaim, error) {
 	userClaim, err := j.NewUserClaim(id, email, isAdmin, duration)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaim)
 	tokenStr, err := token.SignedString([]byte(j.scrtKey))
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return tokenStr, nil
+	return tokenStr, userClaim, nil
 }
 
-func (j *JWTGenerator) VerifyToken(tokenStr string) (bool, error) {
+func (j *JWTGenerator) VerifyToken(tokenStr string) (*userSecretClaim, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, userSecretClaim{}, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
@@ -69,13 +69,13 @@ func (j *JWTGenerator) VerifyToken(tokenStr string) (bool, error) {
 	})
 
 	if err != nil {
-		return false, fmt.Errorf("[VerifyToken] error parsing token: %+v", err)
+		return nil, fmt.Errorf("[VerifyToken] error parsing token: %+v", err)
 	}
 
-	_, ok := token.Claims.(*userSecretClaim)
+	claim, ok := token.Claims.(*userSecretClaim)
 	if !ok {
-		return false, fmt.Errorf("[VerifyToken] Invalid claim")
+		return nil, fmt.Errorf("[VerifyToken] Invalid claim")
 	}
 
-	return true, err
+	return claim, err
 }

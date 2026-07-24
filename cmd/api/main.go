@@ -5,10 +5,11 @@ import (
 
 	"github.com/HammerBone/project-run/internal/config"
 	"github.com/HammerBone/project-run/internal/database"
+	"github.com/HammerBone/project-run/internal/user"
 )
 
 func main() {
-	cfg, err := config.LoadConfig("config/development.yaml")
+	cfg, err := config.LoadEnv()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,7 +19,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := NewServer(cfg, db)
+	userStore := user.NewPostgreUserStorage(db)
+	userService := user.NewUserService(cfg.App.JWTSecret, userStore)
+	userHandler := user.NewUserHandler(userService)
+
+	server := NewServer(cfg, db, *userHandler)
 
 	server.run()
 }
