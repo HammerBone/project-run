@@ -15,17 +15,7 @@ type userSecretClaim struct {
 	jwt.RegisteredClaims
 }
 
-type JWTGenerator struct {
-	scrtKey string
-}
-
-func NewJWTGenerator(scrtKey string) *JWTGenerator {
-	return &JWTGenerator{
-		scrtKey: scrtKey,
-	}
-}
-
-func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration time.Duration) (*userSecretClaim, error) {
+func NewUserClaim(id int, email string, isAdmin bool, duration time.Duration) (*userSecretClaim, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("New user claim error error: %+v", err)
@@ -44,14 +34,14 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	}, nil
 }
 
-func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration) (string, *userSecretClaim, error) {
-	userClaim, err := j.NewUserClaim(id, email, isAdmin, duration)
+func GenerateToken(id int, email string, isAdmin bool, duration time.Duration, secretKey string) (string, *userSecretClaim, error) {
+	userClaim, err := NewUserClaim(id, email, isAdmin, duration)
 	if err != nil {
 		return "", nil, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaim)
-	tokenStr, err := token.SignedString([]byte(j.scrtKey))
+	tokenStr, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", nil, err
 	}
@@ -59,13 +49,13 @@ func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duratio
 	return tokenStr, userClaim, nil
 }
 
-func (j *JWTGenerator) VerifyToken(tokenStr string) (*userSecretClaim, error) {
+func VerifyToken(tokenStr string, secretKey string) (*userSecretClaim, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, userSecretClaim{}, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, fmt.Errorf("[VerifyToken] Invalid signing method")
 		}
-		return j.scrtKey, nil
+		return secretKey, nil
 	})
 
 	if err != nil {

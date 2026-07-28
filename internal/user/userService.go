@@ -10,14 +10,14 @@ import (
 )
 
 type UserService struct {
-	jwtGenerator util.JWTGenerator
-	userStore    UserStore
+	secretKey string
+	userStore UserStore
 }
 
-func NewUserService(scrtKey string, userStore UserStore) *UserService {
+func NewUserService(secretKey string, userStore UserStore) *UserService {
 	return &UserService{
-		jwtGenerator: *util.NewJWTGenerator(scrtKey),
-		userStore:    userStore,
+		secretKey: secretKey,
+		userStore: userStore,
 	}
 }
 
@@ -35,7 +35,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *User) (string, error
 
 	// Generate JWT
 	jwtExp := time.Minute * 15
-	accToken, _, err := s.jwtGenerator.GenerateToken(res.Id, res.Email, res.IsAdmin, jwtExp)
+	accToken, _, err := util.GenerateToken(res.Id, res.Email, res.IsAdmin, jwtExp, s.secretKey)
 	if err != nil {
 		return "", err
 	}
@@ -62,13 +62,13 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 	}
 
 	// Generate access token
-	accToken, accClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, user.IsAdmin, accTokenExp)
+	accToken, accClaim, err := util.GenerateToken(user.Id, user.Email, user.IsAdmin, accTokenExp, s.secretKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate refresh token
-	refreshToken, refreshClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, user.IsAdmin, refreshTokenExp)
+	refreshToken, refreshClaim, err := util.GenerateToken(user.Id, user.Email, user.IsAdmin, refreshTokenExp, s.secretKey)
 
 	userSession := Session{
 		Id:           refreshClaim.RegisteredClaims.ID,
@@ -109,7 +109,7 @@ func (s *UserService) LogoutUser(ctx context.Context, id string) error {
 }
 
 func (s *UserService) RenewAccessToken(ctx context.Context, refreshToken string) (*RenewAccessTokenRes, error) {
-	refreshClaim, err := s.jwtGenerator.VerifyToken(refreshToken)
+	refreshClaim, err := util.VerifyToken(refreshToken, s.secretKey)
 	if err != nil {
 		return nil, err
 	}
@@ -127,13 +127,13 @@ func (s *UserService) RenewAccessToken(ctx context.Context, refreshToken string)
 		return nil, fmt.Errorf("Invalid session")
 	}
 
-	accToken, accClaims, err := s.jwtGenerator.GenerateToken(refreshClaim.Id, refreshClaim.Email, refreshClaim.IsAdmin, time.Minute*15)
+	accToken, accClaims, err := util.GenerateToken(refreshClaim.Id, refreshClaim.Email, refreshClaim.IsAdmin, time.Minute*15, s.secretKey)
 	if err != nil {
 		return nil, err
 	}
 
 	res := &RenewAccessTokenRes{
-		AccessToken: accToken,
+		AccessToken:          accToken,
 		AccessTokenExpiresAt: accClaims.ExpiresAt.Time,
 	}
 
