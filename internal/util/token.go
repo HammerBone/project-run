@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type userSecretClaim struct {
+type UserSecretClaim struct {
 	Id      int
 	Email   string
 	IsAdmin bool
@@ -25,13 +25,13 @@ func NewJWTGenerator(scrtKey string) *JWTGenerator {
 	}
 }
 
-func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration time.Duration) (*userSecretClaim, error) {
+func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration time.Duration) (*UserSecretClaim, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("New user claim error error: %+v", err)
 	}
 
-	return &userSecretClaim{
+	return &UserSecretClaim{
 		Id:      id,
 		Email:   email,
 		IsAdmin: isAdmin,
@@ -44,7 +44,7 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	}, nil
 }
 
-func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration) (string, *userSecretClaim, error) {
+func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration) (string, *UserSecretClaim, error) {
 	userClaim, err := j.NewUserClaim(id, email, isAdmin, duration)
 	if err != nil {
 		return "", nil, err
@@ -59,20 +59,20 @@ func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duratio
 	return tokenStr, userClaim, nil
 }
 
-func (j *JWTGenerator) VerifyToken(tokenStr string) (*userSecretClaim, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, userSecretClaim{}, func(token *jwt.Token) (interface{}, error) {
+func (j *JWTGenerator) VerifyToken(tokenStr string) (*UserSecretClaim, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &UserSecretClaim{}, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, fmt.Errorf("[VerifyToken] Invalid signing method")
 		}
-		return j.scrtKey, nil
+		return []byte(j.scrtKey), nil
 	})
 
 	if err != nil {
 		return nil, fmt.Errorf("[VerifyToken] error parsing token: %+v", err)
 	}
 
-	claim, ok := token.Claims.(*userSecretClaim)
+	claim, ok := token.Claims.(*UserSecretClaim)
 	if !ok {
 		return nil, fmt.Errorf("[VerifyToken] Invalid claim")
 	}
