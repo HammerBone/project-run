@@ -5,6 +5,7 @@ import (
 
 	"github.com/HammerBone/project-run/internal/config"
 	"github.com/HammerBone/project-run/internal/database"
+	"github.com/HammerBone/project-run/internal/post"
 	"github.com/HammerBone/project-run/internal/user"
 )
 
@@ -23,7 +24,11 @@ func main() {
 	userService := user.NewUserService(cfg.App.JWTSecret, userStore)
 	userHandler := user.NewUserHandler(userService)
 
-	server := NewServer(cfg, db, *userHandler)
+	postStore := post.NewPostgrePostStorage(db)
+	postService := post.NewPostService(postStore)
+	postHandler := post.NewPostHandler(postService)
+
+	server := NewServer(cfg, db, *userHandler, *postHandler)
 
 	server.run()
 }
