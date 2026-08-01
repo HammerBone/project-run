@@ -2,15 +2,18 @@ package user
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
 type UserHandler struct {
+	logger      *slog.Logger
 	userService *UserService
 }
 
-func NewUserHandler(userService *UserService) *UserHandler {
+func NewUserHandler(logger *slog.Logger, userService *UserService) *UserHandler {
 	return &UserHandler{
+		logger:      logger,
 		userService: userService,
 	}
 }
@@ -24,7 +27,8 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	accToken, err := h.userService.CreateUser(r.Context(), &u)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.logger.Error("failed creating user", slog.Any("error", err))
+		http.Error(w, "failed creating user", http.StatusInternalServerError)
 		return
 	}
 
@@ -56,6 +60,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.userService.LoginUser(r.Context(), u.Email, u.Password)
 	if err != nil {
+		h.logger.Error("error logging in user", slog.Any("error", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -66,7 +71,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
-	var u UserLogoutReq 
+	var u UserLogoutReq
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -74,6 +79,7 @@ func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.userService.LogoutUser(r.Context(), u.SessionId)
 	if err != nil {
+		h.logger.Error("error logging out user", slog.Any("error", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

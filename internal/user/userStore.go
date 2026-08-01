@@ -18,7 +18,7 @@ func NewPostgreUserStorage(db *sql.DB) *PostgreUserStore {
 func (s *PostgreUserStore) CreateUser(ctx context.Context, user *User) (*User, error) {
 	loc, err := time.LoadLocation("Asia/Jakarta")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("CreateUser: failed loading time location: %w", err)
 	}
 
 	var (
@@ -27,12 +27,9 @@ func (s *PostgreUserStore) CreateUser(ctx context.Context, user *User) (*User, e
 	)
 
 	query := "INSERT INTO users (name, email, password, is_admin, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id"
-	err = s.db.QueryRowContext(
-		ctx, query, user.Name, user.Email, user.Password, user.IsAdmin, timeInWIB,
-	).Scan(&id)
-
+	err = s.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password, user.IsAdmin, timeInWIB).Scan(&id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("CreateUser: failed db query: %w", err)
 	}
 
 	user.Id = int(id)
@@ -52,7 +49,7 @@ func (s *PostgreUserStore) GetUserByEmail(ctx context.Context, email string) (*U
 		&user.CreatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Error getting user | error: %+v", err)
+		return nil, fmt.Errorf("GetUserByEmail: failed db query: %w", err)
 	}
 
 	return &user, nil
@@ -70,7 +67,7 @@ func (s *PostgreUserStore) CreateSession(ctx context.Context, session *Session) 
 		session.ExpiresAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating sessions | error: %+v", err)
+		return nil, fmt.Errorf("CreateSession: failed db query: %w", err)
 	}
 
 	return session, nil
@@ -89,7 +86,7 @@ func (s *PostgreUserStore) GetSession(ctx context.Context, id string) (*Session,
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error getting session | error: %+v", err)
+		return nil, fmt.Errorf("GetSession: failed db query: %w", err)
 	}
 
 	return &ses, nil
@@ -100,7 +97,7 @@ func (s *PostgreUserStore) DeleteSession(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, query, id)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting session | error: %+v", err)
+		return fmt.Errorf("DeleteSession: failed db query: %w", err)
 	}
 
 	return nil

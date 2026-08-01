@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/HammerBone/project-run/internal/config"
 	"github.com/HammerBone/project-run/internal/database"
@@ -20,9 +22,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	userStore := user.NewPostgreUserStorage(db)
 	userService := user.NewUserService(cfg.App.JWTSecret, userStore)
-	userHandler := user.NewUserHandler(userService)
+	userHandler := user.NewUserHandler(logger, userService)
 
 	postStore := post.NewPostgrePostStorage(db)
 	postService := post.NewPostService(postStore)
