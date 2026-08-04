@@ -40,7 +40,6 @@ func AuthMiddleware(jwtGenerator *util.JWTGenerator) func(http.Handler) http.Han
 				log.Printf("error: %+v", err)
 				return
 			}
-			log.Println("[middleware][VerifyToken] claims: ", claims)
 
 			ctx := context.WithValue(r.Context(), authContextKey{}, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))

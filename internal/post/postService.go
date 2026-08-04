@@ -1,12 +1,15 @@
 package post
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type PostService struct {
-	postStore *PostStore
+	postStore PostStore
 }
 
-func NewPostService(postStore *PostStore) *PostService {
+func NewPostService(postStore PostStore) *PostService {
 	return &PostService{
 		postStore: postStore,
 	}
@@ -15,8 +18,17 @@ func NewPostService(postStore *PostStore) *PostService {
 func (s *PostService) CreatePost(ctx context.Context, post *Post, userId int) error {
 	err := s.postStore.CreatePost(ctx, post, userId)
 	if err != nil {
-		return err
+		return fmt.Errorf("[SERVICE][CreatePost]: %w", err)
 	}
 
 	return nil
+}
+
+func (s *PostService) EditPost(ctx context.Context, p *Post, userId int) (*Post, error) {
+	res, err := s.postStore.EditPost(ctx, p, userId)
+	if err != nil {
+		return nil, fmt.Errorf("[SERVICE][EditPost]: %w", err)
+	}
+
+	return res, nil
 }

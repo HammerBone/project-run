@@ -54,6 +54,7 @@ func (s *server) run() error {
 		r.Route("/posts", func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(jwtGenerator))
 			r.Post("/", s.postHandler.CreatePost)
+			r.Patch("/", s.postHandler.EditPost)
 		})
 	})
 

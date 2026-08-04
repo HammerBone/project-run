@@ -30,7 +30,7 @@ func main() {
 
 	postStore := post.NewPostgrePostStorage(db)
 	postService := post.NewPostService(postStore)
-	postHandler := post.NewPostHandler(postService)
+	postHandler := post.NewPostHandler(logger, postService)
 
 	server := NewServer(cfg, db, *userHandler, *postHandler)
 

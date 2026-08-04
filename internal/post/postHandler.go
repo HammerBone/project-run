@@ -2,18 +2,20 @@ package post
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/HammerBone/project-run/internal/middleware"
 )
 
 type PostHandler struct {
+	logger      *slog.Logger
 	postService *PostService
 }
 
-func NewPostHandler(postService *PostService) *PostHandler {
+func NewPostHandler(logger *slog.Logger, postService *PostService) *PostHandler {
 	return &PostHandler{
+		logger:      logger,
 		postService: postService,
 	}
 }
@@ -33,8 +35,6 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("[postHandler][CreatePost] claims: ", claims)
-
 	err = h.postService.CreatePost(r.Context(), &p, claims.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,4 +43,31 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *PostHandler) EditPost(w http.ResponseWriter, r *http.Request) {
+	var p Post
+
+	err := json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := middleware.GetClaims(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	res, err := h.postService.EditPost(r.Context(), &p, claims.Id)
+	if err != nil {
+		h.logger.Error("failed to edit post", slog.Any("error", err.Error()))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(res)
 }
