@@ -3,7 +3,6 @@ CREATE TABLE users (
     name varchar(255) NOT NULL,
     email varchar(255) NOT NULL UNIQUE,
     password varchar(255) NOT NULL,
-    is_admin bool NOT NULL DEFAULT false,
     created_at timestamp NOT NULL DEFAULT now(),
     updated_at timestamp
 );

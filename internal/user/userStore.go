@@ -26,8 +26,8 @@ func (s *PostgreUserStore) CreateUser(ctx context.Context, user *User) (*User, e
 		timeInWIB = time.Now().In(loc)
 	)
 
-	query := "INSERT INTO users (name, email, password, is_admin, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id"
-	err = s.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password, user.IsAdmin, timeInWIB).Scan(&id)
+	query := "INSERT INTO users (name, email, password, created_at) VALUES ($1, $2, $3, $4) RETURNING id"
+	err = s.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password, timeInWIB).Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("CreateUser: failed db query: %w", err)
 	}
@@ -39,13 +39,12 @@ func (s *PostgreUserStore) CreateUser(ctx context.Context, user *User) (*User, e
 
 func (s *PostgreUserStore) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
-	query := "SELECT id, name, email, password, is_admin, created_at FROM users WHERE email=$1"
+	query := "SELECT id, name, email, password, created_at FROM users WHERE email=$1"
 	err := s.db.QueryRowContext(ctx, query, email).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Email,
 		&user.Password,
-		&user.IsAdmin,
 		&user.CreatedAt,
 	)
 	if err != nil {

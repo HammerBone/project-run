@@ -32,17 +32,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type userSignUpRes struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		IsAdmin  bool   `json:"is_admin"`
-		AccToken string `json:"access_token"`
-	}
-
-	res := userSignUpRes{
+	res := UserSignUpRes{
 		Name:     u.Name,
 		Email:    u.Email,
-		IsAdmin:  u.IsAdmin,
 		AccToken: accToken,
 	}
 

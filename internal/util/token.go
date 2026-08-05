@@ -25,7 +25,7 @@ func NewJWTGenerator(scrtKey string) *JWTGenerator {
 	}
 }
 
-func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration time.Duration) (*UserSecretClaim, error) {
+func (j *JWTGenerator) NewUserClaim(id int, email string, duration time.Duration) (*UserSecretClaim, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("New user claim error error: %+v", err)
@@ -34,7 +34,6 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	return &UserSecretClaim{
 		Id:      id,
 		Email:   email,
-		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        tokenId.String(),
 			Subject:   email,
@@ -44,8 +43,8 @@ func (j *JWTGenerator) NewUserClaim(id int, email string, isAdmin bool, duration
 	}, nil
 }
 
-func (j *JWTGenerator) GenerateToken(id int, email string, isAdmin bool, duration time.Duration) (string, *UserSecretClaim, error) {
-	userClaim, err := j.NewUserClaim(id, email, isAdmin, duration)
+func (j *JWTGenerator) GenerateToken(id int, email string, duration time.Duration) (string, *UserSecretClaim, error) {
+	userClaim, err := j.NewUserClaim(id, email, duration)
 	if err != nil {
 		return "", nil, err
 	}

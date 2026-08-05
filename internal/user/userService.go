@@ -34,7 +34,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *User) (string, error
 
 	// Generate JWT
 	jwtExp := time.Minute * 15
-	accToken, _, err := s.jwtGenerator.GenerateToken(res.Id, res.Email, res.IsAdmin, jwtExp)
+	accToken, _, err := s.jwtGenerator.GenerateToken(res.Id, res.Email, jwtExp)
 	if err != nil {
 		return "", fmt.Errorf("CreateUser: failed generating token: %w", err)
 	}
@@ -59,13 +59,13 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 	}
 
 	// Generate access token
-	accToken, accClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, user.IsAdmin, accTokenExp)
+	accToken, accClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, accTokenExp)
 	if err != nil {
 		return nil, fmt.Errorf("LoginUser: failed generating token: %w", err)
 	}
 
 	// Generate refresh token
-	refreshToken, refreshClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, user.IsAdmin, refreshTokenExp)
+	refreshToken, refreshClaim, err := s.jwtGenerator.GenerateToken(user.Id, user.Email, refreshTokenExp)
 
 	userSession := Session{
 		Id:           refreshClaim.RegisteredClaims.ID,
@@ -87,9 +87,8 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 		AccessTokenExp:  accClaim.ExpiresAt.Time,
 		RefreshTokenExp: refreshClaim.ExpiresAt.Time,
 		User: UserRes{
-			Name:    user.Name,
-			Email:   user.Email,
-			IsAdmin: user.IsAdmin,
+			Name:  user.Name,
+			Email: user.Email,
 		},
 	}
 
@@ -124,7 +123,7 @@ func (s *UserService) RenewAccessToken(ctx context.Context, refreshToken string)
 		return nil, fmt.Errorf("RenewAccessToken: Invalid session")
 	}
 
-	accToken, accClaims, err := s.jwtGenerator.GenerateToken(refreshClaim.Id, refreshClaim.Email, refreshClaim.IsAdmin, time.Minute*15)
+	accToken, accClaims, err := s.jwtGenerator.GenerateToken(refreshClaim.Id, refreshClaim.Email, time.Minute*15)
 	if err != nil {
 		return nil, fmt.Errorf("RenewAccessToken: failed generating token: %w", err)
 	}

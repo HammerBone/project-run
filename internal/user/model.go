@@ -7,15 +7,19 @@ type User struct {
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
-	IsAdmin   bool      `db:"is_admin"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type UserRes struct {
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	IsAdmin bool   `json:"is_admin"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type UserSignUpRes struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	AccToken string `json:"access_token"`
 }
 
 type UserLoginReq struct {
@@ -46,6 +50,6 @@ type Session struct {
 }
 
 type RenewAccessTokenRes struct {
-	AccessToken string `json:"access_token"`
+	AccessToken          string    `json:"access_token"`
 	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }
