@@ -80,3 +80,24 @@ func (h *UserHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(u)
 }
+
+func (h *UserHandler) RenewAccessToken(w http.ResponseWriter, r *http.Request) {
+	var req RenewAccessTokenReq
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		h.logger.Error("bad request", slog.Any("error", err))
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	newAccToken, err := h.userService.RenewAccessToken(r.Context(), req.RefreshToken)
+	if err != nil {
+		h.logger.Error("internal server error", slog.Any("error", err))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newAccToken)
+}

@@ -98,7 +98,7 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 func (s *UserService) LogoutUser(ctx context.Context, id string) error {
 	err := s.userStore.DeleteSession(ctx, id)
 	if err != nil {
-		fmt.Errorf("LogoutUser: failed deleting session: %w", err)
+		return fmt.Errorf("LogoutUser: failed deleting session: %w", err)
 	}
 
 	return nil

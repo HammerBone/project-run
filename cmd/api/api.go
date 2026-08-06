@@ -45,6 +45,10 @@ func (s *server) run() error {
 	})
 
 	s.router.Route("/api/v1", func(r chi.Router) {
+		r.Route("/tokens", func(r chi.Router) {
+			r.Post("/renewAccessToken", s.userHandler.RenewAccessToken)
+		})
+
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", s.userHandler.CreateUser)
 			r.Post("/login", s.userHandler.LoginUser)
