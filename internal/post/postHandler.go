@@ -20,6 +20,24 @@ func NewPostHandler(logger *slog.Logger, postService *PostService) *PostHandler 
 	}
 }
 
+func (h *PostHandler) GetAllPost(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetClaims(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	res, err := h.postService.GetAllPost(r.Context(), claims.Id)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}
+
 func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var p Post
 

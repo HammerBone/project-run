@@ -15,6 +15,17 @@ func NewPostService(postStore PostStore) *PostService {
 	}
 }
 
+func (s *PostService) GetAllPost(ctx context.Context, userId int) (*ListPostRes, error) {
+	res, err := s.postStore.GetAllPost(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("[SERVICE][GetAllPost]: %w", err)
+	}
+
+	return &ListPostRes{
+		Post: *res,
+	}, nil
+}
+
 func (s *PostService) CreatePost(ctx context.Context, post *Post, userId int) error {
 	err := s.postStore.CreatePost(ctx, post, userId)
 	if err != nil {

@@ -17,6 +17,34 @@ func NewPostgrePostStorage(db *sql.DB) *PostgrePostStore {
 	}
 }
 
+func (s *PostgrePostStore) GetAllPost(ctx context.Context, userId int) (*[]PostRes, error) {
+	var (
+		post     PostRes
+		postList []PostRes
+	)
+
+	query := "SELECT id, title, description, created_at FROM posts WHERE user_id = $1"
+	res, err := s.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		return nil, fmt.Errorf("[STORE][GetAllPost]: failed db query: %w", err)
+	}
+
+	defer res.Close()
+
+	for res.Next() {
+		if err := res.Scan(&post.Id, &post.Title, &post.Description, &post.CreatedAt); err != nil {
+			return nil, fmt.Errorf("[STORE][GetAllPost]: failed scanning sql row: %w", err)
+		}
+		postList = append(postList, post)
+	}
+
+	if err := res.Err(); err != nil {
+		return nil, fmt.Errorf("[STORE][GetAllPost]: failed iteration: %w", err)
+	}
+
+	return &postList, nil
+}
+
 func (s *PostgrePostStore) GetPostById(ctx context.Context, postId int) (*Post, error) {
 	var post Post
 	query := "SELECT id, title, description, created_at, updated_at FROM posts WHERE id=$1"
